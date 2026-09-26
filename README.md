@@ -6,12 +6,12 @@ A live multiplayer rebus word-puzzle game. The host puts the game on a big scree
 
 **https://zakir987.github.io/rebus-rush/**
 
-1. The host opens the link and clicks **Create room**.
-2. The screen shows a room code, an invite link and a QR code.
-3. Players open the invite link (or the main link and type the code), enter their name, and join.
+1. The host opens the link, types their name (to play too), and clicks **Create room**.
+2. The host clicks **Copy invite link** or **Share on WhatsApp** and sends it to friends.
+3. Friends tap the link, type their name, and press **Join**. The room code is filled in for them.
 4. The host clicks **Start game**.
 
-The host's browser runs the game and players connect to it directly, so no server or sign-up is needed. **The host must keep their tab open** for the whole game.
+The host's browser runs the game, and everyone connects through free public relay servers, so no sign-up is needed. **The host must keep their tab open** for the whole game.
 
 ## Features
 
@@ -38,7 +38,7 @@ Commit the change and the live site updates within a minute or two.
 
 ## If a player can't connect
 
-The game uses a direct browser-to-browser connection. It works on almost all home and mobile networks. Some strict office or college networks block it. If one player can't join, have them switch to a phone hotspot.
+The host connects to three public relay servers at once, and each player uses whichever one their network allows, so it works on almost every home, mobile and office network. If someone still can't join, make sure the host's tab is open, check the 4-letter code, and try a phone hotspot.
 
 ## Other files
 
