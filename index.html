@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Rebus Rush</title>
+<meta name="description" content="A live multiplayer word-puzzle game. Tap the link, type your name, and join the room.">
+<meta property="og:title" content="Join my Rebus Rush game!">
+<meta property="og:description" content="A live word-puzzle race. Tap the link, type your name, and press Join.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0D1624">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='6' width='52' height='52' rx='12' fill='%23F7F2E8'/%3E%3Ctext x='32' y='30' font-family='Arial Black,Arial' font-weight='900' font-size='17' text-anchor='middle' fill='%2317202E'%3ERE%3C/text%3E%3Crect x='14' y='34' width='36' height='3' fill='%2317202E'/%3E%3Ctext x='32' y='54' font-family='Arial Black,Arial' font-weight='900' font-size='15' text-anchor='middle' fill='%2317202E'%3EBUS%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@600;800&display=swap">
@@ -211,10 +217,10 @@ select.inp{font-size:15px}
 .chipp button:hover{color:var(--coral)}
 .lb li.off{opacity:.45}
 a.btn{text-decoration:none;display:inline-flex;align-items:center}
-body.invite .hero,body.invite #hostForm{display:none}
-body.invite .modes{grid-template-columns:minmax(0,560px);justify-content:center;margin-top:8px}
-body.invite #joinForm{border-color:var(--sun);box-shadow:0 0 0 4px rgba(255,178,63,.15)}
-body.invite #joinTitle{font-size:26px}
+body.invite-mode .hero,body.invite-mode #hostForm{display:none}
+body.invite-mode .modes{grid-template-columns:minmax(0,560px);justify-content:center;margin-top:8px}
+body.invite-mode #joinForm{border-color:var(--sun);box-shadow:0 0 0 4px rgba(255,178,63,.15)}
+body.invite-mode #joinTitle{font-size:26px}
 </style>
 <div class="wrap">
   <header class="top">
@@ -224,7 +230,7 @@ body.invite #joinTitle{font-size:26px}
     </div>
     <div class="topr">
       <span class="pill code" id="codePill" hidden></span>
-      <span class="pill" id="netPill"><span class="dot"></span><span id="netTxt">Connecting</span></span>
+      <span class="pill" id="netPill"><span class="dot"></span><span id="netTxt">Ready</span></span>
       <button class="iconbtn" id="muteBtn" type="button" aria-pressed="false">Sound on</button>
     </div>
   </header>
@@ -315,13 +321,14 @@ body.invite #joinTitle{font-size:26px}
         </div>
       </div>
       <form class="guess" id="guess" autocomplete="off">
-        <input class="inp" id="guessIn" maxlength="60" placeholder="Type the phrase and press Enter" spellcheck="false" aria-label="Your answer">
+        <input class="inp" id="guessIn" maxlength="60" placeholder="Type your answer" spellcheck="false" aria-label="Your answer">
         <button class="btn" id="guessBtn" type="submit">Guess</button>
       </form>
       <p class="fb" id="fb" aria-live="polite"></p>
       <div class="hostctl" id="hostCtl" hidden>
         <div class="solvedbar"><span id="solvedTxt">0 of 0 solved</span><span class="meter"><i id="meter"></i></span></div>
         <div class="btns">
+          <button class="btn ghost" id="fsBtn" type="button">Full screen</button>
           <button class="btn ghost" id="skipBtn" type="button">Reveal now</button>
           <button class="btn ghost" id="nextBtn" type="button" hidden>Next puzzle</button>
           <button class="btn coral" id="endBtn" type="button">End game</button>
@@ -487,7 +494,7 @@ const savedName=store.get("rr-name");
 if(savedName){$("#joinName").value=savedName;$("#hostName").value=savedName;}
 if(urlRoom){
   $("#joinCode").value=urlRoom;
-  document.body.classList.add("invite");
+  document.body.classList.add("invite-mode");
   $("#joinTitle").textContent="Join room "+urlRoom;
   $("#joinSub").textContent="Type your name and press Join. That's it.";
   setTimeout(()=>$("#joinName").focus(),50);
@@ -585,7 +592,7 @@ function createRoom(n,d,hostName){
   relays=openRelays(b=>{
     b.c.subscribe(T("up"),{qos:0});
     if(!started){started=true;role="host";btn.disabled=false;btn.textContent="Create room";
-      store.set("rr-host",JSON.stringify({code:c,t:Date.now()}));showCode();}
+      store.set("rr-host",JSON.stringify({code:c,t:Date.now()}));showCode();keepAwake();}
     pub(b,T("down"),{t:"state",s:publicState()},true);
     broadcast();
   },hostMessage);
@@ -615,7 +622,7 @@ function joinRoom(c,name,silent){
         if(!chosen){chosen=b;for(const o of relays) if(o!==b){try{o.c.end(true);}catch(e){}}}
         if(chosen!==b) return;
         answered=true;done();role="player";myName=m.name;hostLost=false;lastState=Date.now();
-        store.set("rr-session",JSON.stringify({code:c,name}));store.set("rr-name",name);showCode();netUpdate();render();
+        store.set("rr-session",JSON.stringify({code:c,name}));store.set("rr-name",name);showCode();netUpdate();keepAwake();render();
       }else if(m.t==="error"){if(!answered){answered=true;done();toast(m.msg);leaveRoom(true);}}
       else if(m.t==="rejoin"){if(chosen===b) sendJoin(b);}
       else if(m.t==="kicked"){if(chosen===b){toast("The host removed you from the room.");leaveRoom(true);}}
@@ -670,6 +677,11 @@ function closeRoom(){
   store.del("rr-host");setTimeout(reset,400);
 }
 $("#closeRoom").onclick=closeRoom;
+$("#fsBtn").onclick=()=>{try{if(document.fullscreenElement) document.exitFullscreen();else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>toast("Full screen isn't available here. Press F11 instead."));}catch(e){}};
+document.addEventListener("fullscreenchange",()=>{$("#fsBtn").textContent=document.fullscreenElement?"Exit full screen":"Full screen";setTimeout(()=>{if(!$("#play").hidden) fitRebus($("#rebus"),$("#card"),80);},100);});
+let wakeLock=null;
+function keepAwake(){try{if(navigator.wakeLock&&!wakeLock) navigator.wakeLock.request("screen").then(l=>{wakeLock=l;l.addEventListener("release",()=>{wakeLock=null;});}).catch(()=>{});}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&role) keepAwake();});
 $("#leaveP").onclick=()=>leaveRoom(false);
 function inviteLink(){return location.origin+location.pathname+"?room="+code;}
 $("#copyLink").onclick=()=>{const t=inviteLink();
